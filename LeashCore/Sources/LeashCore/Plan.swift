@@ -7,13 +7,22 @@ public struct Plan: Codable, Hashable, Sendable, Identifiable {
     public let size: Bytes
     public let periodDays: Int
     public let startDay: CalendarDay
+    public let networks: Set<NetworkID>
 
-    public init(id: UUID = UUID(), name: String, size: Bytes, periodDays: Int, startDay: CalendarDay) {
+    public init(
+        id: UUID = UUID(), name: String, size: Bytes, periodDays: Int, startDay: CalendarDay,
+        networks: Set<NetworkID> = []
+    ) {
         self.id = id
         self.name = name
         self.size = size
         self.periodDays = max(1, periodDays)
         self.startDay = startDay
+        self.networks = networks
+    }
+
+    public func covers(_ network: NetworkID) -> Bool {
+        networks.contains(network)
     }
 
     /// Also guards decoded values, which skip the init.
