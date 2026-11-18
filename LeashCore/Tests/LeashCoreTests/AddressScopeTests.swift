@@ -22,7 +22,7 @@ struct AddressScopeTests {
         #expect(addressScope(of: "::ffff:8.8.8.8") == .internet)
     }
 
-    @Test(arguments: ["", "nonsense", "300.1.1.1", "1.2.3.4.5"])
+    @Test(arguments: ["", "nonsense", "300.1.1.1", "1.2.3.4.5", "8.8.8.8%en0", "fe80::1%en0%x", "fe80::1%"])
     func garbageIsRejected(_ text: String) {
         #expect(addressScope(of: text) == nil)
     }

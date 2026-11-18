@@ -41,7 +41,12 @@ public func addressScope(of address: String) -> AddressScope? {
 
 /// The address's bytes, with a zone suffix dropped and an IPv4-mapped IPv6 address reduced to its IPv4 bytes.
 private func addressBytes(_ text: String) -> [UInt8]? {
-    let host = String(text.prefix { $0 != "%" })
+    let parts = text.split(separator: "%", maxSplits: 1, omittingEmptySubsequences: false)
+    let host = String(parts[0])
+    if parts.count == 2 {
+        // Only an IPv6 address takes a zone, and the zone is one non-empty name.
+        guard host.contains(":"), !parts[1].isEmpty, !parts[1].contains("%") else { return nil }
+    }
     if let v4 = IPv4Address(host) { return Array(v4.rawValue) }
     guard let v6 = IPv6Address(host) else { return nil }
     let bytes = Array(v6.rawValue)
