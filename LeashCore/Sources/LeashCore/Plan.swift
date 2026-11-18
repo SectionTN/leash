@@ -7,17 +7,40 @@ public struct Plan: Codable, Hashable, Sendable, Identifiable {
     public let size: Bytes
     public let periodDays: Int
     public let startDay: CalendarDay
+    public let networks: Set<NetworkID>
 
-    public init(id: UUID = UUID(), name: String, size: Bytes, periodDays: Int, startDay: CalendarDay) {
+    public init(
+        id: UUID = UUID(), name: String, size: Bytes, periodDays: Int, startDay: CalendarDay,
+        networks: Set<NetworkID> = []
+    ) {
         self.id = id
         self.name = name
         self.size = size
         self.periodDays = max(1, periodDays)
         self.startDay = startDay
+        self.networks = networks
     }
 
-    /// Also guards decoded values, which skip the init.
-    private var length: Int { max(1, periodDays) }
+    /// Goes through the init, so a saved plan without `networks` or with a zero period still decodes to a valid one.
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.init(
+            id: try container.decode(UUID.self, forKey: .id),
+            name: try container.decode(String.self, forKey: .name),
+            size: try container.decode(Bytes.self, forKey: .size),
+            periodDays: try container.decode(Int.self, forKey: .periodDays),
+            startDay: try container.decode(CalendarDay.self, forKey: .startDay),
+            networks: try container.decodeIfPresent(Set<NetworkID>.self, forKey: .networks) ?? []
+        )
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id, name, size, periodDays, startDay, networks
+    }
+
+    public func covers(_ network: NetworkID) -> Bool {
+        networks.contains(network)
+    }
 
     /// The period that holds `date`. Days before the start day belong to the first period.
     public func period(containing date: Date, calendar: Calendar) -> PlanPeriod {
@@ -43,9 +66,9 @@ public struct Plan: Codable, Hashable, Sendable, Identifiable {
         let fixed = Self.withoutDaylightSaving(calendar)
         let anchor = startDay.start(in: fixed)
         let today = CalendarDay(date, calendar: calendar).start(in: fixed)
-        let index = max(0, (fixed.dateComponents([.day], from: anchor, to: today).day ?? 0) / length)
-        let first = fixed.date(byAdding: .day, value: index * length, to: anchor) ?? anchor
-        let end = fixed.date(byAdding: .day, value: length, to: first) ?? first
+        let index = max(0, (fixed.dateComponents([.day], from: anchor, to: today).day ?? 0) / periodDays)
+        let first = fixed.date(byAdding: .day, value: index * periodDays, to: anchor) ?? anchor
+        let end = fixed.date(byAdding: .day, value: periodDays, to: first) ?? first
         return (CalendarDay(first, calendar: fixed), CalendarDay(end, calendar: fixed))
     }
 

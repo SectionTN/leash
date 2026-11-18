@@ -76,6 +76,16 @@ struct PlanTests {
         #expect(monthly.daysLeft(on: day("2018-11-05", saoPaulo), calendar: saoPaulo) == 29)
     }
 
+    @Test func planSavedWithoutNetworksDecodesThroughTheInit() throws {
+        let json = #"""
+            {"id":"6F9619FF-8B86-D011-B42D-00C04FC964FF","name":"SIM","size":30000000000,"periodDays":0,
+            "startDay":{"year":2026,"month":11,"day":16}}
+            """#
+        let plan = try JSONDecoder().decode(Plan.self, from: Data(json.utf8))
+        #expect(plan.networks.isEmpty)
+        #expect(plan.periodDays == 1)
+    }
+
     @Test func unitsAreDecimal() {
         #expect(Bytes.megabyte == 1_000_000)
         #expect(Bytes.gigabyte == 1_000_000_000)
