@@ -66,6 +66,16 @@ struct PlanTests {
         #expect(plan.daysLeft(on: day("2026-11-18", newYork), calendar: newYork) == 28)
     }
 
+    @Test func startDayWhoseMidnightIsSkippedStillCountsWholeDays() {
+        let saoPaulo = calendar("America/Sao_Paulo")
+        let plan = Plan(name: "Daily", size: .gigabyte, periodDays: 1, startDay: calendarDay("2018-11-04"))
+        let period = plan.period(containing: day("2018-11-05 10:00", saoPaulo), calendar: saoPaulo)
+        #expect(period == PlanPeriod(start: day("2018-11-05", saoPaulo), end: day("2018-11-06", saoPaulo)))
+        #expect(plan.daysLeft(on: day("2018-11-05 10:00", saoPaulo), calendar: saoPaulo) == 1)
+        let monthly = Plan(name: "Monthly", size: .gigabyte, periodDays: 30, startDay: calendarDay("2018-11-04"))
+        #expect(monthly.daysLeft(on: day("2018-11-05", saoPaulo), calendar: saoPaulo) == 29)
+    }
+
     @Test func unitsAreDecimal() {
         #expect(Bytes.megabyte == 1_000_000)
         #expect(Bytes.gigabyte == 1_000_000_000)
