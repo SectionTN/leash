@@ -12,6 +12,12 @@ public struct CalendarDay: Codable, Hashable, Sendable {
         self.day = day
     }
 
+    /// The day that holds `date` in `calendar`.
+    public init(_ date: Date, calendar: Calendar) {
+        let parts = calendar.dateComponents([.year, .month, .day], from: date)
+        self.init(year: parts.year ?? 1970, month: parts.month ?? 1, day: parts.day ?? 1)
+    }
+
     /// The first moment of this day in `calendar`.
     public func start(in calendar: Calendar) -> Date {
         let date = calendar.date(from: DateComponents(year: year, month: month, day: day))

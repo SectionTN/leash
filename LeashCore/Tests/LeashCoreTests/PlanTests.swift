@@ -66,6 +66,26 @@ struct PlanTests {
         #expect(plan.daysLeft(on: day("2026-11-18", newYork), calendar: newYork) == 28)
     }
 
+    @Test func startDayWhoseMidnightIsSkippedStillCountsWholeDays() {
+        let saoPaulo = calendar("America/Sao_Paulo")
+        let plan = Plan(name: "Daily", size: .gigabyte, periodDays: 1, startDay: calendarDay("2018-11-04"))
+        let period = plan.period(containing: day("2018-11-05 10:00", saoPaulo), calendar: saoPaulo)
+        #expect(period == PlanPeriod(start: day("2018-11-05", saoPaulo), end: day("2018-11-06", saoPaulo)))
+        #expect(plan.daysLeft(on: day("2018-11-05 10:00", saoPaulo), calendar: saoPaulo) == 1)
+        let monthly = Plan(name: "Monthly", size: .gigabyte, periodDays: 30, startDay: calendarDay("2018-11-04"))
+        #expect(monthly.daysLeft(on: day("2018-11-05", saoPaulo), calendar: saoPaulo) == 29)
+    }
+
+    @Test func planSavedWithoutNetworksDecodesThroughTheInit() throws {
+        let json = #"""
+            {"id":"6F9619FF-8B86-D011-B42D-00C04FC964FF","name":"SIM","size":30000000000,"periodDays":0,
+            "startDay":{"year":2026,"month":11,"day":16}}
+            """#
+        let plan = try JSONDecoder().decode(Plan.self, from: Data(json.utf8))
+        #expect(plan.networks.isEmpty)
+        #expect(plan.periodDays == 1)
+    }
+
     @Test func unitsAreDecimal() {
         #expect(Bytes.megabyte == 1_000_000)
         #expect(Bytes.gigabyte == 1_000_000_000)
