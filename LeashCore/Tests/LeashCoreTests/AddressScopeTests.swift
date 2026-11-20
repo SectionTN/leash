@@ -5,7 +5,7 @@ import Testing
 struct AddressScopeTests {
     @Test(arguments: [
         "192.168.100.1", "10.0.0.5", "172.16.0.1", "172.31.255.255", "169.254.10.1", "127.0.0.1",
-        "224.0.0.251", "255.255.255.255", "::1", "fe80::1", "fd00::1", "ff02::fb",
+        "224.0.0.251", "255.255.255.255", "0.0.0.0", "::1", "::", "fe80::1", "fd00::1", "ff02::fb",
     ])
     func localAddresses(_ address: String) {
         #expect(addressScope(of: address) == .local)
@@ -22,7 +22,10 @@ struct AddressScopeTests {
         #expect(addressScope(of: "::ffff:8.8.8.8") == .internet)
     }
 
-    @Test(arguments: ["", "nonsense", "300.1.1.1", "1.2.3.4.5", "8.8.8.8%en0", "fe80::1%en0%x", "fe80::1%"])
+    @Test(arguments: [
+        "", "nonsense", "300.1.1.1", "1.2.3.4.5", "8.8.8.8%en0", "fe80::1%en0%x", "fe80::1%",
+        "127.1", "1.2.3", "010.0.0.1", "1.2.3.04", "0x7f.0.0.1", "1..2.3",
+    ])
     func garbageIsRejected(_ text: String) {
         #expect(addressScope(of: text) == nil)
     }
@@ -31,7 +34,7 @@ struct AddressScopeTests {
         #expect(
             LocalNetworks.all.map { "\($0.address)/\($0.prefix)" } == [
                 "10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "169.254.0.0/16", "127.0.0.0/8", "224.0.0.0/4",
-                "255.255.255.255/32", "::1/128", "fe80::/10", "fc00::/7", "ff00::/8",
+                "255.255.255.255/32", "0.0.0.0/8", "::1/128", "::/128", "fe80::/10", "fc00::/7", "ff00::/8",
             ])
     }
 }
