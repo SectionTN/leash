@@ -75,7 +75,7 @@ public func outermostAppBundle(of path: String) -> String? {
 public func displayPath(_ path: String) -> String {
     for prefix in ["/opt/homebrew/", "/usr/local/"] where path.hasPrefix(prefix) {
         let parts = path.dropFirst(prefix.count).split(separator: "/", omittingEmptySubsequences: false)
-        if parts.count >= 3, parts[0] == "Cellar" || parts[0] == "opt", !parts[1].isEmpty {
+        if parts.count >= 3, ["Cellar", "Caskroom", "opt"].contains(parts[0]), !parts[1].isEmpty {
             return "brew: \(parts[1])"
         }
     }
