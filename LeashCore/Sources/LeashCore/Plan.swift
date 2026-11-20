@@ -58,7 +58,8 @@ public struct Plan: Codable, Hashable, Sendable, Identifiable {
 
     /// What is left in the period, split evenly over the days left.
     public func dailyAllowance(usedBeforeToday: Bytes, on date: Date, calendar: Calendar) -> Bytes {
-        max(0, size - usedBeforeToday) / Bytes(daysLeft(on: date, calendar: calendar))
+        // Both sides are clamped first, so corrupt values can't overflow the subtraction.
+        max(0, max(0, size) - max(0, usedBeforeToday)) / Bytes(daysLeft(on: date, calendar: calendar))
     }
 
     /// The first day of the period that holds `date`, and the day after its last.

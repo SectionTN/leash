@@ -3,7 +3,7 @@ import Foundation
 public struct UsageTotals: Equatable, Codable, Sendable {
     public var bytesIn: Bytes
     public var bytesOut: Bytes
-    public var total: Bytes { bytesIn + bytesOut }
+    public var total: Bytes { bytesIn.saturatingAdd(bytesOut) }
 
     public static let zero = UsageTotals(bytesIn: 0, bytesOut: 0)
 
@@ -13,8 +13,8 @@ public struct UsageTotals: Equatable, Codable, Sendable {
     }
 
     fileprivate mutating func add(_ other: UsageTotals) {
-        bytesIn += other.bytesIn
-        bytesOut += other.bytesOut
+        bytesIn = bytesIn.saturatingAdd(other.bytesIn)
+        bytesOut = bytesOut.saturatingAdd(other.bytesOut)
     }
 }
 
@@ -36,7 +36,7 @@ public struct UsageLedger: Equatable, Codable, Sendable {
     ) {
         let hourStart = calendar.dateInterval(of: .hour, for: date)?.start ?? date
         let bucket = Bucket(app: app, planID: planID, hourStart: hourStart)
-        buckets[bucket, default: .zero].add(UsageTotals(bytesIn: bytesIn, bytesOut: bytesOut))
+        buckets[bucket, default: .zero].add(UsageTotals(bytesIn: max(0, bytesIn), bytesOut: max(0, bytesOut)))
     }
 
     /// Sums the hours that start in `[from, to)`, for one app or all of them.
