@@ -6,12 +6,15 @@ public struct BlockedDigest: Equatable, Sendable {
     private var pending: Set<AppKey> = []
     private var announced: Set<AppKey> = []
     private var lastDelivery: Date?
+    /// When each blocked app last tried to connect, for the menu.
+    public private(set) var lastAttempts: [AppKey: Date] = [:]
 
     public init(interval: TimeInterval = 600) {
         self.interval = interval
     }
 
     public mutating func noteBlocked(_ app: AppKey, at date: Date) {
+        lastAttempts[app] = date
         if !announced.contains(app) { pending.insert(app) }
     }
 
@@ -19,12 +22,17 @@ public struct BlockedDigest: Equatable, Sendable {
     public mutating func forget(_ app: AppKey) {
         announced.remove(app)
         pending.remove(app)
+        lastAttempts[app] = nil
     }
 
     /// The apps blocked since the last digest, or nil when there are none or the interval hasn't passed.
     public mutating func takeDigest(at date: Date) -> Set<AppKey>? {
         guard !pending.isEmpty else { return nil }
-        if let lastDelivery, date.timeIntervalSince(lastDelivery) < interval { return nil }
+        if let lastDelivery {
+            // A clock set back gives a negative gap, which counts as the interval having passed.
+            let elapsed = date.timeIntervalSince(lastDelivery)
+            if elapsed >= 0 && elapsed < interval { return nil }
+        }
         defer {
             announced.formUnion(pending)
             pending = []
