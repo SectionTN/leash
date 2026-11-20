@@ -32,6 +32,13 @@ struct PlanTests {
         #expect(monthly(tunis).dailyAllowance(usedBeforeToday: 31 * .gigabyte, on: today, calendar: tunis) == 0)
     }
 
+    @Test func corruptValuesGiveAnAllowanceInsteadOfACrash() {
+        let today = day("2026-11-18", tunis)
+        #expect(monthly(tunis).dailyAllowance(usedBeforeToday: .min, on: today, calendar: tunis) == 1_071_428_571)
+        let broken = Plan(name: "Broken", size: .min, periodDays: 30, startDay: calendarDay("2026-11-16"))
+        #expect(broken.dailyAllowance(usedBeforeToday: 1, on: today, calendar: tunis) == 0)
+    }
+
     @Test func dailyBundleGetsItsWholeSizeEveryDay() {
         let plan = Plan(name: "Daily", size: 1 * .gigabyte, periodDays: 1, startDay: calendarDay("2026-11-01"))
         #expect(plan.dailyAllowance(usedBeforeToday: 0, on: day("2026-11-18", tunis), calendar: tunis) == .gigabyte)

@@ -50,4 +50,22 @@ struct UsageLedgerTests {
         ledger.prune(before: day("2025-10-14", cal))
         #expect(ledger.totals(planID: plan, from: .distantPast, to: .distantFuture).bytesIn == 2)
     }
+
+    @Test func hugeCountsStopAtTheLimitInsteadOfCrashing() {
+        var ledger = UsageLedger()
+        let at = day("2026-11-18 12:00", cal)
+        ledger.record(app: curl, planID: plan, bytesIn: .max, bytesOut: .max, at: at, calendar: cal)
+        ledger.record(app: curl, planID: plan, bytesIn: 1, bytesOut: 1, at: at, calendar: cal)
+        let totals = ledger.totals(planID: plan, from: .distantPast, to: .distantFuture)
+        #expect(totals == UsageTotals(bytesIn: .max, bytesOut: .max))
+        #expect(totals.total == .max)
+    }
+
+    @Test func negativeCountsAreRecordedAsZero() {
+        var ledger = UsageLedger()
+        ledger.record(
+            app: curl, planID: plan, bytesIn: -5, bytesOut: 7, at: day("2026-11-18 12:00", cal), calendar: cal)
+        #expect(
+            ledger.totals(planID: plan, from: .distantPast, to: .distantFuture) == UsageTotals(bytesIn: 0, bytesOut: 7))
+    }
 }

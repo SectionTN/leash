@@ -77,6 +77,7 @@ struct AppIdentityTests {
         #expect(displayPath("/usr/local/Cellar/gh/2.80.0/bin/gh") == "brew: gh")
         #expect(displayPath("/opt/homebrew/Cellar/node@22/22.11.0/bin/node") == "brew: node@22")
         #expect(displayPath("/opt/homebrew/opt/curl/bin/curl") == "brew: curl")
+        #expect(displayPath("/opt/homebrew/Caskroom/ngrok/3.20.0/ngrok") == "brew: ngrok")
         #expect(displayPath("/usr/bin/curl") == "/usr/bin/curl")
     }
 

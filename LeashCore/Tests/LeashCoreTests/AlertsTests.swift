@@ -45,6 +45,29 @@ struct AlertsTests {
         #expect(digest.takeDigest(at: start + 600) == [steam])
     }
 
+    @Test func clockSetBackDoesNotSilenceTheDigest() {
+        var digest = BlockedDigest()
+        digest.noteBlocked(steam, at: start)
+        #expect(digest.takeDigest(at: start) == [steam])
+        digest.noteBlocked(update, at: start - 3600)
+        #expect(digest.takeDigest(at: start - 3600) == [update])
+    }
+
+    @Test func lastAttemptKeepsUpdatingAfterTheAppIsAnnounced() {
+        var digest = BlockedDigest()
+        digest.noteBlocked(steam, at: start)
+        #expect(digest.takeDigest(at: start) == [steam])
+        digest.noteBlocked(steam, at: start + 300)
+        #expect(digest.lastAttempts == [steam: start + 300])
+    }
+
+    @Test func forgottenAppHasNoLastAttempt() {
+        var digest = BlockedDigest()
+        digest.noteBlocked(steam, at: start)
+        digest.forget(steam)
+        #expect(digest.lastAttempts.isEmpty)
+    }
+
     @Test func thresholdsFireOnTheWayUp() {
         let limit = 1000 * Bytes.megabyte
         #expect(crossedThreshold(before: 790 * .megabyte, after: 810 * .megabyte, limit: limit) == .eightyPercent)
